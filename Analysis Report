@@ -1,0 +1,79 @@
+Business Problem
+
+Uber’s static pricing model often underestimates ride fares during high-demand or high-traffic periods, causing driver dissatisfaction and revenue loss. The goal of this project is to design a surge-pricing prediction model that dynamically adjusts fares based on congestion, demand, and time-based patterns — ensuring fair compensation for drivers and maximizing Uber’s profitability.
+
+Data Understanding
+
+Dataset: Uber Ride Analytics Dashboard (Kaggle)
+Rows: 150,000 | Columns: 21
+Key Features:
+Pickup Location, Drop Location — ride zones
+Booking Value — actual fare paid by customer
+Avg VTAT — driver travel time to reach customer
+Avg CTAT — ride completion time
+Ride Distance, Vehicle Type, Booking Status
+Reason for cancelling by Customer
+Feature Engineering:
+Derived pickup_delay_ratio, trip_congestion_ratio, total_time_ratio
+Added temporal features: hour, day_of_week, month, is_weekend, is_festival
+Merged data by pickup zones for cluster-level analysis
+
+Modeling Approach
+1. Clustering (K-Means)
+Grouped pickup zones into four behavior clusters using:
+Ride count
+Average VTAT / CTAT ratios
+Total time ratio
+Average fare
+Cluster Insights:
+Cluster	Description	Behavior
+| Cluster | Description                  | Behavior                                |
+| ------- | ---------------------------- | --------------------------------------- |
+| 0       | Central Business Surge Zones | High congestion, high demand            |
+| 1       | Commuter Corridors           | Moderate congestion, predictable demand |
+| 2       | Premium Long Trips           | High booking value, long distances      |
+| 3       | Residential Routes           | Low congestion, short rides             |
+
+
+2. Surge Fare Prediction (Random Forest Regression)
+Target variable:
+Surge Gap = Booking Value − Base Fare (₹414)
+Model inputs:
+pickup_delay_ratio, trip_congestion_ratio, hour, is_weekend, is_festival
+Predicted:
+Predicted Surge Fare = Base Fare + Predicted Surge Gap
+Business constraint: all surge fares ≥ ₹414.
+
+Evaluation
+| Metric         | Result                                | Interpretation                                       |
+| -------------- | ------------------------------------- | ---------------------------------------------------- |
+| MAE            | Low                                   | Model predictions close to actual fares              |
+| Visualization  | Actual vs Predicted cluster-wise bars | Surge fares increase correctly in congested clusters |
+| Behavior Check | Low-fare rides raised to threshold    | Ensures minimum profitability                        |
+
+Example output:
+| Booking Value | Predicted Price |
+| ------------- | --------------- |
+| 159           | 414             |
+| 627           | 616             |
+| 737           | 766             |
+| 523           | 579             |
+
+Business Impact
+1) Ensures fair driver compensation during congestion.
+2) Helps Uber forecast revenue by region and hour.
+3) Reduces customer cancellations by balancing surge and affordability.
+4) Identifies high-potential zones (like Connaught Place, Cyber Hub, Ashram) for surge deployment and driver allocation.
+
+Deployment
+Deployed as a predictive pricing module:
+1) Input: live pickup/drop data + real-time traffic + time + event tags.
+2) Output: surge multiplier and predicted fare recommendation.
+3) Can integrate via Uber’s pricing API or a Streamlit dashboard for visualization.
+
+Conclusion
+
+The project demonstrates how analytics-driven surge modeling can:
+1) Dynamically predict optimal fares
+2) Improve supply-demand balance
+3) Enhance Uber’s operational efficiency and driver retention
